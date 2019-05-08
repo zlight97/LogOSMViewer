@@ -28,3 +28,9 @@ while this one gives encompasing featrures?
 [timeout:10][out:json];is_in(37.77944,-122.42526)->.a;way(pivot.a);out tags bb;out ids geom(37.777634750327046,-122.43199467658997,37.78284129296774,-122.41783261299133);relation(pivot.a);out tags bb;
 
 these give results as json which is better? maybe. List is too large though, need to figure out how it's sorted or a way to sort it
+
+other links
+
+https://janakiev.com/blog/openstreetmap-with-python-and-overpass-api/
+
+https://overpass-api.de

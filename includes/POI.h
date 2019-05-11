@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <Definitions.h>
+#include <iostream>
 using namespace std;
 
 enum poi_type

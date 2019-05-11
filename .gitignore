@@ -32,3 +32,23 @@
 *.app
 
 OSM/*
+.vscode/*
+.vscode/ipch/dc364a2b62689df8/mmap_address.bin
+.vscode/settings.json
+.vscode/ipch/51abf806c6097f28/mmap_address.bin
+.vscode/ipch/5fbda37ec7c7535e/POI.ipch
+.vscode/ipch/5fbda37ec7c7535e/mmap_address.bin
+.vscode/ipch/66e62c95a3487421/main.ipch
+.vscode/ipch/66e62c95a3487421/mmap_address.bin
+.vscode/ipch/a34f7294daa71a7e/LogViewer.ipch
+.vscode/ipch/a34f7294daa71a7e/mmap_address.bin
+.vscode/ipch/c04602aa8343de74/mmap_address.bin
+build/CMakeFiles/main.dir/cmake_clean.cmake
+build/CMakeFiles/main.dir/CXX.includecache
+build/CMakeFiles/main.dir/DependInfo.cmake
+build/CMakeFiles/main.dir/build.make
+build/CMakeFiles/main.dir/depend.internal
+build/CMakeFiles/main.dir/depend.make
+build/CMakeFiles/main.dir/link.txt
+build/main
+build/Makefile

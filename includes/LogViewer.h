@@ -15,10 +15,11 @@ class LogViewer
     double steptime;
     vector<LogData*> data;
     thread viewerThread;
+    int id;
 public:
     void run();
     void query();
-    LogViewer(string file);
+    LogViewer(string file, int ID);
     ~LogViewer();
 };
 

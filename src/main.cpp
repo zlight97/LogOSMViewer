@@ -6,7 +6,10 @@
 #include <unistd.h>
 #include <Definitions.h>
 #include <LogViewer.h>
+#include <filesystem>
 using namespace std;
+namespace fs = std::filesystem;
+
 double current_time = 0, timescale = 1.;
 bool paused =0, endd = 0, rev = 0;
 int resolution = 250000;
@@ -36,11 +39,21 @@ int main(int argc, char* argv[])
     // cpr::Body("[timeout:10][out:json];(node(around:22.5,37.77944,-122.42526);way(around:22.5,37.77944,-122.42526););out tags geom(37.777634750327046,-122.43199467658997,37.78284129296774,-122.41783261299133);relation(around:22.5,37.77944,-122.42526);out geom(37.777634750327046,-122.43199467658997,37.78284129296774,-122.41783261299133);"));
     // auto json = nlohmann::json::parse(response.text);
     // std::cout << json.dump(4) << std::endl;
+    vector <string> paths;
+
+    for (const auto & entry : fs::directory_iterator("../Logs"))
+        paths.push_back(entry.path());
+
+    vector <thread*> threads;
+    vector <LogViewer*> viewers;
     thread th(run);
-    LogViewer l("ty5OWH3TUHlxTbwZXr3KHBzDTZZpeMVFaTjGrMqNKhpNbsfAKvF0G6pRIap0dkdt-2019-04-16_13-05-04.nav-project.csv");
-    thread v(&LogViewer::run, &l);
-    LogViewer l2("4e7485cfe0c552a50112f33c573dca8c4e174786a59a6e407a589aa6d1d71d7a-2019-04-16_13-08-45.nav-project.csv");
-    thread v2(&LogViewer::run, &l2);
+    int i = 0;
+    for(string s : paths)
+    {
+        LogViewer *l = new LogViewer(s, i);
+        thread *logg = new thread(&LogViewer::run, l); 
+        i++;
+    }
     char c = '\0';
     while(c!='E')
     {
@@ -62,7 +75,7 @@ int main(int argc, char* argv[])
         if(c=='P')
             paused = !paused;
     }
-    v.join();
-    v2.join();
+    for(thread *t : threads)
+        t->join();
     th.join();
 }

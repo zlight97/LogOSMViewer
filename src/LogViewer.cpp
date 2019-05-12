@@ -6,10 +6,10 @@
 #include <unistd.h>
 using namespace std;
 
-LogViewer::LogViewer(string file)
+LogViewer::LogViewer(string file, int ID)
 {
+    id = ID;
     fstream f;
-    file = "../Logs/"+(file);
     f.open(file, ios::in);
     string line, word, temp;
     vector<string> v;
@@ -57,7 +57,8 @@ void LogViewer::run()
         int i = (int) index;
         if(i>=0&&i<data.size())
         {
-            cout<<"TIME: "<<data[i]->time<<"\nnLat: "<<data[i]->nLat<<" nLong: "<<data[i]->nLong<<" nElev: "<<data[i]->nE<<endl;
+            cout<<"ID: "<<id<<" TIME: "<<data[i]->time<<"\nnLat: "<<data[i]->nLat<<" nLong: "<<data[i]->nLong<<" nElev: "<<data[i]->nE<<endl;
+            cout<<"gpsLat: "<<data[i]->gpsLat<<" gpsLong: "<<data[i]->gpsLong<<" gpsElev: "<<data[i]->gpsE<<endl;
         }
         if(endd)
             return;

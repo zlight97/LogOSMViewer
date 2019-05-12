@@ -48,11 +48,13 @@ LogViewer::~LogViewer()
 }
 
 void LogViewer::run()
-{
+{   query();
     while(1)
     {
         while(paused)
             usleep(resolution);
+        if(current_time>200&&current_time<210)
+            query();
         double index = (current_time/steptime) - data[0]->time/steptime;
         int i = (int) index;
         if(i>=0&&i<data.size())
@@ -66,7 +68,36 @@ void LogViewer::run()
     }
 }
 
-void LogViewer::query()
+void LogViewer::query()//thread the call of this
 {
+    double index = (current_time/steptime) - data[0]->time/steptime;
+    int i = 1;
+    if(i>=0&&i<data.size())
+    {
+        if(data[i]->pois.size()==0)
+        {
+            string lat = to_string(data[i]->nLat);
+            string lon = to_string(data[i]->nLong);
+            string E = "10";//to_string(data[i]->nE);
+            double latFac = 0.00042076252;
+            double lonFac = 0.00205188989;
+            string bbox = to_string(data[i]->nLat-latFac)+","+to_string(data[i]->nLong-lonFac)+","+to_string(data[i]->nLat+latFac)+","+to_string(data[i]->nLong+lonFac);
+            // string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););relation(around:"+E+","+lat+","+lon+");";
+            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
+            cout<<body<<endl;
+            mtx.lock();
+            
+            auto response = cpr::Get(cpr::Url{"https://www.overpass-api.de/api/interpreter"},
+            cpr::Body(body));
+            auto json = nlohmann::json::parse(response.text);
+            std::cout << json.dump(4) << std::endl;
+            mtx.unlock();
+        }
 
+        for(POI* p : data[index]->pois)
+        {
+            
+        }
+        
+    }
 }

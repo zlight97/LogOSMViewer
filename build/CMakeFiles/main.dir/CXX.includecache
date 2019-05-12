@@ -8,10 +8,28 @@
 
 ../includes/Definitions.h
 
+../includes/LogViewer.h
+Definitions.h
+-
+string
+-
+vector
+-
+thread
+-
+mutex
+-
+POI.h
+-
+
 ../includes/POI.h
 vector
 -
 string
+-
+Definitions.h
+-
+iostream
 -
 
 ../opt/cpr/include/cpr/api.h
@@ -540,6 +558,20 @@ limits
 type_traits
 -
 
+/home/zach/Documents/LogOSMViewer/src/LogViewer.cpp
+LogViewer.h
+-
+fstream
+-
+iostream
+-
+cpr/cpr.h
+-
+json.hpp
+-
+unistd.h
+-
+
 /home/zach/Documents/LogOSMViewer/src/main.cpp
 iostream
 -
@@ -554,5 +586,9 @@ POI.h
 unistd.h
 -
 Definitions.h
+-
+LogViewer.h
+-
+filesystem
 -
 

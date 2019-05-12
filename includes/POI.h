@@ -25,10 +25,12 @@ class POI
 {
     vector <Tag*>tags;
     poi_type type;
+    double lat, lon;
 public:
     POI(poi_type type);
     ~POI();
     poi_type getPOIType() {return type;}
+    vector <Tag*> getTags() {return tags;}
     void addTag(Tag *t);
     void addTag(string name, string desc);
     

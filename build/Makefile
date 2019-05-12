@@ -136,6 +136,33 @@ cpr/fast:
 	$(MAKE) -f opt/cpr/cpr/CMakeFiles/cpr.dir/build.make opt/cpr/cpr/CMakeFiles/cpr.dir/build
 .PHONY : cpr/fast
 
+src/LogViewer.o: src/LogViewer.cpp.o
+
+.PHONY : src/LogViewer.o
+
+# target to build an object file
+src/LogViewer.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/LogViewer.cpp.o
+.PHONY : src/LogViewer.cpp.o
+
+src/LogViewer.i: src/LogViewer.cpp.i
+
+.PHONY : src/LogViewer.i
+
+# target to preprocess a source file
+src/LogViewer.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/LogViewer.cpp.i
+.PHONY : src/LogViewer.cpp.i
+
+src/LogViewer.s: src/LogViewer.cpp.s
+
+.PHONY : src/LogViewer.s
+
+# target to generate assembly for a file
+src/LogViewer.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/LogViewer.cpp.s
+.PHONY : src/LogViewer.cpp.s
+
 src/POI.o: src/POI.cpp.o
 
 .PHONY : src/POI.o
@@ -162,33 +189,6 @@ src/POI.s: src/POI.cpp.s
 src/POI.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/POI.cpp.s
 .PHONY : src/POI.cpp.s
-
-src/Runner.o: src/Runner.cpp.o
-
-.PHONY : src/Runner.o
-
-# target to build an object file
-src/Runner.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/Runner.cpp.o
-.PHONY : src/Runner.cpp.o
-
-src/Runner.i: src/Runner.cpp.i
-
-.PHONY : src/Runner.i
-
-# target to preprocess a source file
-src/Runner.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/Runner.cpp.i
-.PHONY : src/Runner.cpp.i
-
-src/Runner.s: src/Runner.cpp.s
-
-.PHONY : src/Runner.s
-
-# target to generate assembly for a file
-src/Runner.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/Runner.cpp.s
-.PHONY : src/Runner.cpp.s
 
 src/main.o: src/main.cpp.o
 
@@ -227,12 +227,12 @@ help:
 	@echo "... main"
 	@echo "... edit_cache"
 	@echo "... cpr"
+	@echo "... src/LogViewer.o"
+	@echo "... src/LogViewer.i"
+	@echo "... src/LogViewer.s"
 	@echo "... src/POI.o"
 	@echo "... src/POI.i"
 	@echo "... src/POI.s"
-	@echo "... src/Runner.o"
-	@echo "... src/Runner.i"
-	@echo "... src/Runner.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

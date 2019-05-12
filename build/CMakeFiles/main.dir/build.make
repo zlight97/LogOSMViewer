@@ -57,9 +57,22 @@ include CMakeFiles/main.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/main.dir/flags.make
 
+CMakeFiles/main.dir/src/LogViewer.cpp.o: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/LogViewer.cpp.o: ../src/LogViewer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zach/Documents/LogOSMViewer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main.dir/src/LogViewer.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main.dir/src/LogViewer.cpp.o -c /home/zach/Documents/LogOSMViewer/src/LogViewer.cpp
+
+CMakeFiles/main.dir/src/LogViewer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/LogViewer.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zach/Documents/LogOSMViewer/src/LogViewer.cpp > CMakeFiles/main.dir/src/LogViewer.cpp.i
+
+CMakeFiles/main.dir/src/LogViewer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/LogViewer.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zach/Documents/LogOSMViewer/src/LogViewer.cpp -o CMakeFiles/main.dir/src/LogViewer.cpp.s
+
 CMakeFiles/main.dir/src/POI.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/POI.cpp.o: ../src/POI.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zach/Documents/LogOSMViewer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main.dir/src/POI.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zach/Documents/LogOSMViewer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main.dir/src/POI.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main.dir/src/POI.cpp.o -c /home/zach/Documents/LogOSMViewer/src/POI.cpp
 
 CMakeFiles/main.dir/src/POI.cpp.i: cmake_force
@@ -69,19 +82,6 @@ CMakeFiles/main.dir/src/POI.cpp.i: cmake_force
 CMakeFiles/main.dir/src/POI.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/POI.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zach/Documents/LogOSMViewer/src/POI.cpp -o CMakeFiles/main.dir/src/POI.cpp.s
-
-CMakeFiles/main.dir/src/Runner.cpp.o: CMakeFiles/main.dir/flags.make
-CMakeFiles/main.dir/src/Runner.cpp.o: ../src/Runner.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zach/Documents/LogOSMViewer/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main.dir/src/Runner.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main.dir/src/Runner.cpp.o -c /home/zach/Documents/LogOSMViewer/src/Runner.cpp
-
-CMakeFiles/main.dir/src/Runner.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/Runner.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zach/Documents/LogOSMViewer/src/Runner.cpp > CMakeFiles/main.dir/src/Runner.cpp.i
-
-CMakeFiles/main.dir/src/Runner.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/Runner.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zach/Documents/LogOSMViewer/src/Runner.cpp -o CMakeFiles/main.dir/src/Runner.cpp.s
 
 CMakeFiles/main.dir/src/main.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/main.cpp.o: ../src/main.cpp
@@ -98,15 +98,15 @@ CMakeFiles/main.dir/src/main.cpp.s: cmake_force
 
 # Object files for target main
 main_OBJECTS = \
+"CMakeFiles/main.dir/src/LogViewer.cpp.o" \
 "CMakeFiles/main.dir/src/POI.cpp.o" \
-"CMakeFiles/main.dir/src/Runner.cpp.o" \
 "CMakeFiles/main.dir/src/main.cpp.o"
 
 # External object files for target main
 main_EXTERNAL_OBJECTS =
 
+main: CMakeFiles/main.dir/src/LogViewer.cpp.o
 main: CMakeFiles/main.dir/src/POI.cpp.o
-main: CMakeFiles/main.dir/src/Runner.cpp.o
 main: CMakeFiles/main.dir/src/main.cpp.o
 main: CMakeFiles/main.dir/build.make
 main: lib/libcpr.a

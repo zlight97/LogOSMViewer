@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/main.dir/src/LogViewer.cpp.o"
   "CMakeFiles/main.dir/src/POI.cpp.o"
-  "CMakeFiles/main.dir/src/Runner.cpp.o"
   "CMakeFiles/main.dir/src/main.cpp.o"
   "main.pdb"
   "main"

@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/zach/Documents/LogOSMViewer/src/LogViewer.cpp" "/home/zach/Documents/LogOSMViewer/build/CMakeFiles/main.dir/src/LogViewer.cpp.o"
   "/home/zach/Documents/LogOSMViewer/src/POI.cpp" "/home/zach/Documents/LogOSMViewer/build/CMakeFiles/main.dir/src/POI.cpp.o"
-  "/home/zach/Documents/LogOSMViewer/src/Runner.cpp" "/home/zach/Documents/LogOSMViewer/build/CMakeFiles/main.dir/src/Runner.cpp.o"
   "/home/zach/Documents/LogOSMViewer/src/main.cpp" "/home/zach/Documents/LogOSMViewer/build/CMakeFiles/main.dir/src/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

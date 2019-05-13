@@ -4,6 +4,7 @@
 #include <cpr/cpr.h>
 #include <json.hpp>
 #include <unistd.h>
+#define jEle json["elements"]
 using namespace std;
 using json = nlohmann::json;
 LogViewer::LogViewer(string file, int ID)
@@ -95,6 +96,24 @@ void LogViewer::query()//thread the call of this
             cpr::Body(body));
             auto json = json::parse(response.text);
             std::cout << json.dump(4) << std::endl;
+            for(int jI = 0; jI<jEle.size(); jI++)
+            {
+                if(jEle["type"]=="node")
+                {
+                    POI *p = new POI(NODE);
+                    data[index]->pois.push_back(p);
+                }
+                else if(jEle["type"]=="way")
+                {
+                    POI *p = new POI(WAY);
+                    data[index]->pois.push_back(p);
+                }
+                else if(jEle["type"]=="relation")
+                {
+                    POI *p = new POI(RELATION);
+                    data[index]->pois.push_back(p);
+                }
+            }
         }
         
         for(POI* p : data[index]->pois)

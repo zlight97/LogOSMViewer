@@ -41,3 +41,9 @@ void POI::setBounds(double minLat, double minLon, double maxLat, double maxLon)
     bounds.maxLat = maxLat;
     bounds.maxLon = maxLon;
 }
+
+void POI::setCoord(double lat, double lon)
+{
+    nodeCoord.lat = lat;
+    nodeCoord.lon = lon;
+}

@@ -42,6 +42,7 @@ class POI
     Coord coordinates;
     vector <Coord*> geometry;
     Bound bounds;
+    Coord nodeCoord;
 public:
     POI(poi_type type);
     ~POI();
@@ -54,6 +55,8 @@ public:
     void addGeom(double lat, double lon);
     void addGeom();//adding null
     void setBounds(double minLat, double minLon, double maxLat, double maxLon);
+    void setCoord(double lat, double lon);
+    Coord getCoord() { return nodeCoord;}
     
 
 };

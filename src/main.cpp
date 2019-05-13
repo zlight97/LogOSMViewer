@@ -11,8 +11,9 @@ using namespace std;
 namespace fs = std::filesystem;
 
 double current_time = 0, timescale = 1.;
-bool paused =0, endd = 0, rev = 0;
-int resolution = 250000;
+bool paused =0, endd = 0, rev = 0, quer = 0;
+int resolution = resolution_start, queryID = -1;
+
 void run()
 {
     double fac = (double)resolution/1000000;
@@ -35,21 +36,25 @@ void run()
 
 int main(int argc, char* argv[])
 {
-
+    
     vector <string> paths;
 
     for (const auto & entry : fs::directory_iterator("../Logs"))
         paths.push_back(entry.path());
 
     vector <thread*> threads;
+    vector <thread*> netThreads;
     vector <LogViewer*> viewers;
+    vector <int> netThreadIds;
     thread th(run);
-    int i = 0;
+    int id = 0;
     for(string s : paths)
     {
-        LogViewer *l = new LogViewer(s, i);
+        LogViewer *l = new LogViewer(s, id);
         thread *logg = new thread(&LogViewer::run, l); 
-        i++;
+        threads.push_back(logg);
+        viewers.push_back(l);
+        id++;
     }
     char c = '\0';
     while(c!='E')
@@ -66,17 +71,58 @@ int main(int argc, char* argv[])
         {
             double i = 1;
             cin>>i;
-            cout<<i<<endl;
+            if(i<=0.||i>=10.)
+                continue;
             timescale = i;
+            resolution = resolution_start/timescale;
         }
         if(c=='P')
             paused = !paused;
+        if(c=='Q')
+        {
+            int i;
+            cin>>i;
+            if(i<0)
+            {
+                for(LogViewer* l : viewers)
+                {
+                    // if(l->isNetThreadRunning())
+                    //     continue;
+                    thread *net = new thread(&LogViewer::query, l);
+                    netThreads.push_back(net);
+                    netThreadIds.push_back(l->getID());
+                }
+            }
+            else if(i<viewers.size()&&!viewers[i]->isNetThreadRunning())
+            {
+                thread *net = new thread(&LogViewer::query, viewers[i]);
+                netThreads.push_back(net);
+                netThreadIds.push_back(i);
+            }
+            
+        }
+
+        for(int i = 0; i<netThreads.size(); i++)
+        {
+            if(viewers[netThreadIds[i]]->isNetThreadRunning())
+            {
+                netThreads[i]->join();
+                delete netThreads[i];
+                netThreadIds.erase(netThreadIds.begin()+i);
+                netThreads.erase(netThreads.begin()+i);
+            }
+        }
     }
     for(int i =0; i<threads.size(); i++)
     {
         threads[i]->join();
         delete threads[i];
         delete viewers[i];
+    }
+    for(int i = 0; i<netThreads.size(); i++)
+    {
+        netThreads[i]->join();
+        delete netThreads[i];
     }
     th.join();
 }

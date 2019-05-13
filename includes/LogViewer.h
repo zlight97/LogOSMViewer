@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <POI.h>
 using namespace std;
 struct LogData
@@ -15,16 +16,18 @@ struct LogData
 
 class LogViewer
 {
-    static mutex mtx;
     double steptime;
     vector<LogData*> data;
-    thread viewerThread;
     int id;
+    atomic <bool> threadRunning;
 public:
     void run();
     void query();
     LogViewer(string file, int ID);
     ~LogViewer();
+    bool isNetThreadRunning() {return threadRunning;}
+    int getID() {return id;}
+    vector <LogData*> getPastPositions();
 };
 
 #endif

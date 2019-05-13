@@ -5,9 +5,10 @@
 #include <json.hpp>
 #include <unistd.h>
 using namespace std;
-
+using json = nlohmann::json;
 LogViewer::LogViewer(string file, int ID)
 {
+    threadRunning = 0;
     id = ID;
     fstream f;
     f.open(file, ios::in);
@@ -38,6 +39,7 @@ LogViewer::LogViewer(string file, int ID)
     }
     if(data.size()>1)
         steptime = data[1]->time-data[0]->time;
+    f.close();
 }
 
 LogViewer::~LogViewer()
@@ -48,13 +50,15 @@ LogViewer::~LogViewer()
 }
 
 void LogViewer::run()
-{   query();
+{   
     while(1)
     {
         while(paused)
+        {
             usleep(resolution);
-        if(current_time>200&&current_time<210)
-            query();
+        }
+        // if(current_time>200&&current_time<210)
+        //     query();
         double index = (current_time/steptime) - data[0]->time/steptime;
         int i = (int) index;
         if(i>=0&&i<data.size())
@@ -70,8 +74,9 @@ void LogViewer::run()
 
 void LogViewer::query()//thread the call of this
 {
+    threadRunning=1;
     double index = (current_time/steptime) - data[0]->time/steptime;
-    int i = 1;
+    int i = (double) index;
     if(i>=0&&i<data.size())
     {
         if(data[i]->pois.size()==0)
@@ -85,19 +90,30 @@ void LogViewer::query()//thread the call of this
             // string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););relation(around:"+E+","+lat+","+lon+");";
             string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
             cout<<body<<endl;
-            mtx.lock();
             
             auto response = cpr::Get(cpr::Url{"https://www.overpass-api.de/api/interpreter"},
             cpr::Body(body));
-            auto json = nlohmann::json::parse(response.text);
+            auto json = json::parse(response.text);
             std::cout << json.dump(4) << std::endl;
-            mtx.unlock();
         }
-
+        
         for(POI* p : data[index]->pois)
         {
             
         }
-        
     }
+    threadRunning=0;
+}
+
+
+vector <LogData*> LogViewer::getPastPositions()
+{
+    double index = (current_time/steptime) - data[0]->time/steptime;
+    double fac = (double)resolution/1000000;
+    vector <LogData*> ret;
+    for(double i = 0.; i<=index;i+=fac*timescale)
+    {
+        ret.push_back(data[(int)i]);
+    }
+    return ret;
 }

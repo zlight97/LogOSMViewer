@@ -21,18 +21,39 @@ struct Tag
     string desc;
 };
 
+struct Coord
+{
+    double lat;
+    double lon;
+};
+
+struct Bound
+{
+    double minLat;
+    double maxLat;
+    double minLon;
+    double maxLon;
+};
+
 class POI
 {
     vector <Tag*>tags;
     poi_type type;
-    double lat, lon;
+    Coord coordinates;
+    vector <Coord*> geometry;
+    Bound bounds;
 public:
     POI(poi_type type);
     ~POI();
     poi_type getPOIType() {return type;}
     vector <Tag*> getTags() {return tags;}
+    vector<Coord*> getGeom() {return geometry;}
+    Bound getBounds() {return bounds;}
     void addTag(Tag *t);
     void addTag(string name, string desc);
+    void addGeom(double lat, double lon);
+    void addGeom();//adding null
+    void setBounds(double minLat, double minLon, double maxLat, double maxLon);
     
 
 };

@@ -57,6 +57,8 @@ public:
     void setBounds(double minLat, double minLon, double maxLat, double maxLon);
     void setCoord(double lat, double lon);
     Coord getCoord() { return nodeCoord;}
+    string getTypeStr();
+    void printQueriedInfo();
     
 
 };

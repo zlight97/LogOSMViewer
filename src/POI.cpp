@@ -47,3 +47,38 @@ void POI::setCoord(double lat, double lon)
     nodeCoord.lat = lat;
     nodeCoord.lon = lon;
 }
+
+string POI::getTypeStr()
+{
+    switch(type)
+    {
+        case RELATION:
+        return "relation";
+        case NODE:
+        return "node";
+        case WAY:
+        return "way";
+        default:
+        return "none";
+    }
+}
+
+void POI::printQueriedInfo()
+{
+    cout<<"Type: "<<getTypeStr()<<
+    "\nTags:\n{";
+    if(getTags().size()==0)
+        cout<<"\n\tNo Tags\n}\n";
+    else{
+        for(Tag* t:getTags())
+        {
+            cout<<"\t"<<t->name<<"\t:\t\""<<t->desc<<"\"\n";
+        }
+        cout<<"}\n";
+    }
+    if(getPOIType() == NODE)
+    {
+        Coord c = getCoord();
+        cout<<"Latitude: "<<c.lat<<" Longitude: "<<c.lon<<endl;
+    }
+}

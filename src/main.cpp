@@ -101,6 +101,15 @@ int main(int argc, char* argv[])
             }
             
         }
+        if(c=='A')
+        {
+            int temp = 0;
+            for(LogViewer *v : viewers)
+            {
+                cout<<"Log ID: "<<temp++;
+                v->printAllQueriedInfo();
+            }
+        }
 
         for(int i = 0; i<netThreads.size(); i++)
         {

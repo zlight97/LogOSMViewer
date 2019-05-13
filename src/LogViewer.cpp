@@ -4,6 +4,7 @@
 #include <cpr/cpr.h>
 #include <json.hpp>
 #include <unistd.h>
+#include <random>
 #define jEle json["elements"]
 using namespace std;
 using json = nlohmann::json;
@@ -26,8 +27,6 @@ LogViewer::LogViewer(string file, int ID)
         }
 
         LogData *d = new LogData;
-        // for(string s :v)
-        //     cout<<s<<endl;
         d->time = stod(v[0]);
         d->nLat = stod(v[1]);
         d->nLong = stod(v[2]);
@@ -41,6 +40,16 @@ LogViewer::LogViewer(string file, int ID)
     if(data.size()>1)
         steptime = data[1]->time-data[0]->time;
     f.close();
+
+    //this creates random colors based off the node's id
+    //while it is possible for two nodes to share the same color, it is extremely unlikely
+    time_t now = time(0);
+    now = now/10 * ID;
+    srand(now);
+    srand48(now);
+    color.R = rand()%255;
+    color.G = rand()%255;
+    color.B = rand()%255;
 }
 
 LogViewer::~LogViewer()
@@ -58,8 +67,6 @@ void LogViewer::run()
         {
             usleep(resolution);
         }
-        // if(current_time>200&&current_time<210)
-        //     query();
         double index = (current_time/steptime) - data[0]->time/steptime;
         int i = (int) index;
         if(i>=0&&i<data.size())
@@ -88,38 +95,72 @@ void LogViewer::query()//thread the call of this
             double latFac = 0.00042076252;
             double lonFac = 0.00205188989;
             string bbox = to_string(data[i]->nLat-latFac)+","+to_string(data[i]->nLong-lonFac)+","+to_string(data[i]->nLat+latFac)+","+to_string(data[i]->nLong+lonFac);
-            // string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););relation(around:"+E+","+lat+","+lon+");";
-            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");";//;relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
-            cout<<body<<endl;
+            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
             
             auto response = cpr::Get(cpr::Url{"https://www.overpass-api.de/api/interpreter"},
             cpr::Body(body));
-            auto json = json::parse(response.text);
-            std::cout << json.dump(4) << std::endl;
+            try{
+                auto json = json::parse(response.text);
             for(int jI = 0; jI<jEle.size(); jI++)
             {
-                if(jEle["type"]=="node")
+                POI *p;
+                if(jEle[jI]["type"]=="node")
                 {
-                    POI *p = new POI(NODE);
+                    p = new POI(NODE);
                     data[index]->pois.push_back(p);
                 }
-                else if(jEle["type"]=="way")
+                else if(jEle[jI]["type"]=="way")
                 {
-                    POI *p = new POI(WAY);
+                    p = new POI(WAY);
                     data[index]->pois.push_back(p);
                 }
-                else if(jEle["type"]=="relation")
+                else if(jEle[jI]["type"]=="relation")
                 {
-                    POI *p = new POI(RELATION);
+                    p = new POI(RELATION);
                     data[index]->pois.push_back(p);
+                }
+                else
+                {
+                    cout<<"UNTYPED NODE???"<<endl;//this should never happen
+                    continue;
+                }
+                if(!jEle[jI]["lat"].is_null() && !jEle[jI]["lon"].is_null())
+                {
+                    p->setCoord(jEle[jI]["lat"], jEle[jI]["lon"]);
+                }
+                if(!jEle[jI]["tags"].is_null())
+                {
+                    for (auto it = jEle[jI]["tags"].begin(); it != jEle[jI]["tags"].end(); ++it)
+                    {
+                        string field = it.key();
+                        if(field.find("addr")!=-1)
+                            continue;
+                        p->addTag(field, it.value());
+                    }
+                }
+                if(!jEle[jI]["geometry"].is_null())
+                {
+                    for(int n = 0; n<jEle[jI]["geometry"].size();n++)
+                    {
+                        if(jEle[jI]["geometry"][n].is_null())
+                            p->addGeom();
+                        else
+                            p->addGeom(jEle[jI]["geometry"][n]["lat"],jEle[jI]["geometry"][n]["lon"]);
+                    }
+
                 }
             }
+            }catch(nlohmann::detail::parse_error e)
+            {
+                cerr<<"Could not parse data:\n"<<e.what();
+            }
         }
-        
+        cout<<"Points of interest at timestep: "<<data[index]->time<<endl;
         for(POI* p : data[index]->pois)
         {
-            
+            p->printQueriedInfo();
         }
+            
     }
     threadRunning=0;
 }
@@ -140,4 +181,19 @@ vector <LogData*> LogViewer::getPastPositions()
 thread* LogViewer::createThreadedQuery()
 {
     return new thread(&LogViewer::query, this);
+}
+
+void LogViewer::printAllQueriedInfo()
+{
+    for(int i = 0; i<data.size();i++)
+    {
+        if(data[i]->pois.size()>0)
+        {
+            cout<<"Points of interest at timestep: "<<data[i]->time<<endl;
+            for(POI* p : data[i]->pois)
+            {
+                p->printQueriedInfo();
+            }
+        }
+    }
 }

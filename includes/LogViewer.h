@@ -14,12 +14,18 @@ struct LogData
     vector <POI*> pois;
 };
 
+struct Color
+{
+    int R, G, B;
+};
+
 class LogViewer
 {
     double steptime;
     vector<LogData*> data;
     int id;
     atomic <bool> threadRunning;
+    Color color;
 public:
     void run();
     void query();
@@ -29,6 +35,8 @@ public:
     int getID() {return id;}
     vector <LogData*> getPastPositions();
     thread *createThreadedQuery();
+    void printAllQueriedInfo();
+    Color getColor();
 };
 
 #endif

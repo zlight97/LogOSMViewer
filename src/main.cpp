@@ -10,14 +10,33 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-double current_time = 0, timescale = 1.;
-bool paused =0, endd = 0, rev = 0, quer = 0;
-int resolution = resolution_start, queryID = -1;
+/*
+*This file holds the main function, which handles starting the entire project
+*this includes starting a task which handles the run() function, which acts as the counter for the global clock
+*
+*Main also handles taking user input
+*The commands for this are:
+*E - exit
+*R - toggle reverse
+*T d - Set timescale to double d
+*Q n - query LogViewerID n at current position (negative n will query all IDS)
+    *this forks a new thread  to handle the API calls, query will usually complete in about a second/query based on connection speed and query size
+*P - toggle pause/play
+*A - show data from all queried spots accross all LogViewers
+*/
 
+//initilization of extern variables from Definitions.h
+double current_time = 0, timescale = 1.;
+bool paused =0, endd = 0, rev = 0;
+//resolution handles the polling rate for the clock
+//Faster rate (smaller number) means more polls
+int resolution = resolution_start;
+
+//Handles the clock based on all possible variables
 void run()
 {
+    sleep(1);//this lets the threads initilize so they can playback from 0 if available
     double fac = (double)resolution/1000000;
-    time_t started = time(0);
     while(!endd)
     {
         while(paused)
@@ -28,9 +47,8 @@ void run()
             current_time+=fac * timescale;
         else
             current_time-=fac * timescale;
-        // started = time(0);
         usleep(resolution);//microseconds
-        cout<<"MAIN Current time is: "<<current_time<<" P: "<<paused<<" R: "<<rev<<endl;
+        cout<<"MAIN Current time is: "<<current_time<<" P: "<<paused<<" R: "<<rev<<" T: "<<timescale<<endl;
     }
 }
 
@@ -39,6 +57,7 @@ int main(int argc, char* argv[])
     
     vector <string> paths;
 
+    //this finds all logs in the Logs folder so we can turn them into LogViewers
     for (const auto & entry : fs::directory_iterator("../Logs"))
         paths.push_back(entry.path());
 
@@ -46,8 +65,11 @@ int main(int argc, char* argv[])
     vector <thread*> netThreads;
     vector <LogViewer*> viewers;
     vector <int> netThreadIds;
+    //this thread runs the clock Run() function
     thread th(run);
     int id = 0;
+
+    //initilizing all the log files as their own thread
     for(string s : paths)
     {
         LogViewer *l = new LogViewer(s, id);
@@ -62,6 +84,7 @@ int main(int argc, char* argv[])
         cin>>c;
         if(c=='E')
         {
+            paused = 0;
             endd = 1;
             break;
         }
@@ -88,14 +111,12 @@ int main(int argc, char* argv[])
                 {
                     // if(l->isNetThreadRunning())
                     //     continue;
-                    // thread *net = new thread(&LogViewer::query, l);
                     netThreads.push_back(l->createThreadedQuery());
                     netThreadIds.push_back(l->getID());
                 }
             }
             else if(i<viewers.size()&&!viewers[i]->isNetThreadRunning())
             {
-                // thread *net = new thread(&LogViewer::query, viewers[i]);
                 netThreads.push_back(viewers[i]->createThreadedQuery());
                 netThreadIds.push_back(i);
             }
@@ -111,6 +132,7 @@ int main(int argc, char* argv[])
             }
         }
 
+        //this works to free some finished threads. Only runs on each input - this doesn't matter as querying a new task requires input
         for(int i = 0; i<netThreads.size(); i++)
         {
             if(viewers[netThreadIds[i]]->isNetThreadRunning())
@@ -122,6 +144,7 @@ int main(int argc, char* argv[])
             }
         }
     }
+    //clean up all of the threads before we exit
     for(int i =0; i<threads.size(); i++)
     {
         threads[i]->join();

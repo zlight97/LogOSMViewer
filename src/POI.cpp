@@ -1,10 +1,15 @@
 #include <POI.h>
+/*
+ *POI was what I decided to call my class for storing OSM data
+ *These points of interest hold ways nodes and relations and their data
+ */
 POI::POI(poi_type type)
 {
     this->type = type;
 }
 POI::~POI()
 {
+    //making sure delete pointers to avoid leaks
     for(int i = 0; i<tags.size();i++)
         delete tags[i];
     tags.clear();
@@ -48,6 +53,7 @@ void POI::setCoord(double lat, double lon)
     nodeCoord.lon = lon;
 }
 
+//this is just used for printing easier
 string POI::getTypeStr()
 {
     switch(type)
@@ -63,6 +69,7 @@ string POI::getTypeStr()
     }
 }
 
+//print relevant data. As i do not know how much data we will want, I am printing all data for now
 void POI::printQueriedInfo()
 {
     cout<<"Type: "<<getTypeStr()<<
@@ -81,4 +88,10 @@ void POI::printQueriedInfo()
         Coord c = getCoord();
         cout<<"Latitude: "<<c.lat<<" Longitude: "<<c.lon<<endl;
     }
+    else
+    {
+        cout<<"Bounds:\n{\n\tminlat: "<<bounds.minLat<<"\n\tmaxlat: "<<bounds.maxLat<<"\n\tminlon: "<<bounds.minLon<<"\n\tmaxlon: "<<bounds.maxLon<<"\n}\n";
+    }
+    cout<<endl;
+    
 }

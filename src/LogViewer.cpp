@@ -16,6 +16,7 @@ LogViewer::LogViewer(string file, int ID)
     f.open(file, ios::in);
     string line, word, temp;
     vector<string> v;
+    //this while parses a log file, splitting it into each section, and adding it to a LogData vector called data
     while (getline(f,line))
     {
         v.clear();
@@ -37,6 +38,9 @@ LogViewer::LogViewer(string file, int ID)
         data.push_back(d);
         
     }
+
+    //each file had a different ammount of time between each step, but it remained consistant between each file
+    //This is used to find our index based on the real-time
     if(data.size()>1)
         steptime = data[1]->time-data[0]->time;
     f.close();
@@ -53,14 +57,23 @@ LogViewer::LogViewer(string file, int ID)
 }
 
 LogViewer::~LogViewer()
-{
+{//cleaning pointers
     for(int i = 0; i <data.size(); i++)
+    {
+        for(int j = 0; j<data[i]->pois.size();j++)
+        {
+            delete data[i]->pois[j];
+        }
+        data[i]->pois.clear();
         delete data[i];
+    }
     data.clear();
 }
 
 void LogViewer::run()
 {   
+    //the function for each threaded LogViewer. This function handles when it print's it's data based on the current time
+    //It sleeps at the same rate as the master clock so each thread will poll once per clock tick
     while(1)
     {
         while(paused)
@@ -69,7 +82,7 @@ void LogViewer::run()
         }
         double index = (current_time/steptime) - data[0]->time/steptime;
         int i = (int) index;
-        if(i>=0&&i<data.size())
+        if(i>=0&&i<data.size())//if we arent in valid range there is no playback
         {
             cout<<"ID: "<<id<<" TIME: "<<data[i]->time<<"\nnLat: "<<data[i]->nLat<<" nLong: "<<data[i]->nLong<<" nElev: "<<data[i]->nE<<endl;
             cout<<"gpsLat: "<<data[i]->gpsLat<<" gpsLong: "<<data[i]->gpsLong<<" gpsElev: "<<data[i]->gpsE<<endl;
@@ -80,81 +93,100 @@ void LogViewer::run()
     }
 }
 
-void LogViewer::query()//thread the call of this
+void LogViewer::query()
 {
+    //the secondary thread of each LogViewer, which gathers queried data without disrupting normal playback
+    //this can be called as many times as wanted during a data-set and all data will be stored for potential later use
     threadRunning=1;
-    double index = (current_time/steptime) - data[0]->time/steptime;
+    double index = (current_time/steptime) - data[0]->time/steptime;//calculating index based off time
     int i = (double) index;
-    if(i>=0&&i<data.size())
+    if(i>=0&&i<data.size())//if we are not in valid range we do not check
     {
-        if(data[i]->pois.size()==0)
+        if(data[i]->pois.size()==0)//if there isn't already data at this point
         {
+            //this block determines the data that is going to be sent to the overpass API
             string lat = to_string(data[i]->nLat);
             string lon = to_string(data[i]->nLong);
             string E = "10";//to_string(data[i]->nE);
-            double latFac = 0.00042076252;
+            double latFac = 0.00042076252;//these factors were determined by playing around with OSM and viewing how it makes it's calls to overpass
             double lonFac = 0.00205188989;
             string bbox = to_string(data[i]->nLat-latFac)+","+to_string(data[i]->nLong-lonFac)+","+to_string(data[i]->nLat+latFac)+","+to_string(data[i]->nLong+lonFac);
             string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
-            
+                                                                                                                        //commenting after this ;^ and adding "; will remove relations, which in turn removes a lot of garbage data
+            //I chose to use overpass as it does all of the searching for me, and gives me nearby results, which are easier to parse
             auto response = cpr::Get(cpr::Url{"https://www.overpass-api.de/api/interpreter"},
             cpr::Body(body));
-            try{
+            try{//try catch is to catch timeouts or other null-data. Though this should never happen, it is possible with a bad connection the network won't usually error, but the json parsing will if this occurs
                 auto json = json::parse(response.text);
-            for(int jI = 0; jI<jEle.size(); jI++)
-            {
-                POI *p;
-                if(jEle[jI]["type"]=="node")
+                for(int jI = 0; jI<jEle.size(); jI++)
                 {
-                    p = new POI(NODE);
-                    data[index]->pois.push_back(p);
-                }
-                else if(jEle[jI]["type"]=="way")
-                {
-                    p = new POI(WAY);
-                    data[index]->pois.push_back(p);
-                }
-                else if(jEle[jI]["type"]=="relation")
-                {
-                    p = new POI(RELATION);
-                    data[index]->pois.push_back(p);
-                }
-                else
-                {
-                    cout<<"UNTYPED NODE???"<<endl;//this should never happen
-                    continue;
-                }
-                if(!jEle[jI]["lat"].is_null() && !jEle[jI]["lon"].is_null())
-                {
-                    p->setCoord(jEle[jI]["lat"], jEle[jI]["lon"]);
-                }
-                if(!jEle[jI]["tags"].is_null())
-                {
-                    for (auto it = jEle[jI]["tags"].begin(); it != jEle[jI]["tags"].end(); ++it)
+                    POI *p;
+                    //all json objects in this api will have a type field
+                    if(jEle[jI]["type"]=="node")
                     {
-                        string field = it.key();
-                        if(field.find("addr")!=-1)
-                            continue;
-                        p->addTag(field, it.value());
+                        p = new POI(NODE);
+                        data[index]->pois.push_back(p);
                     }
-                }
-                if(!jEle[jI]["geometry"].is_null())
-                {
-                    for(int n = 0; n<jEle[jI]["geometry"].size();n++)
+                    else if(jEle[jI]["type"]=="way")
                     {
-                        if(jEle[jI]["geometry"][n].is_null())
-                            p->addGeom();
-                        else
-                            p->addGeom(jEle[jI]["geometry"][n]["lat"],jEle[jI]["geometry"][n]["lon"]);
+                        p = new POI(WAY);
+                        data[index]->pois.push_back(p);
                     }
+                    else if(jEle[jI]["type"]=="relation")
+                    {
+                        p = new POI(RELATION);
+                        data[index]->pois.push_back(p);
+                    }
+                    else
+                    {
+                        cout<<"UNTYPED NODE???"<<endl;//this should never happen
+                        continue;
+                    }
+                    //these hold potential useful data, which are described as is
+                    if(!jEle[jI]["lat"].is_null() && !jEle[jI]["lon"].is_null())//lat lon are only for nodes
+                    {
+                        p->setCoord(jEle[jI]["lat"], jEle[jI]["lon"]);
+                    }
+                    if(!jEle[jI]["tags"].is_null())
+                    {
+                        //use an iterator as that allows me to find the field name as well as value of tags
+                        //this allows for me to accept tags that I haven't seen before
+                        //this is good because there are way too many tags to go through on OSM
+                        for (auto it = jEle[jI]["tags"].begin(); it != jEle[jI]["tags"].end(); ++it)
+                        {
+                            string field = it.key();
+                            //uncommenting this field will remove address data from the relevant tag list.
+                            //if discovered, other useless tags can be added in a similar manner
+                            // if(field.find("addr")!=-1)
+                            //     continue;
+                            p->addTag(field, it.value());
+                        }
+                    }
+                    //these are the outlines of ways (and maybe sometimes relations?)
+                    if(!jEle[jI]["geometry"].is_null())
+                    {
+                        for(int n = 0; n<jEle[jI]["geometry"].size();n++)
+                        {
+                            if(jEle[jI]["geometry"][n].is_null())
+                                p->addGeom();//for some reason there are usually many null points, so we duplicate this in our data structure
+                            else
+                                p->addGeom(jEle[jI]["geometry"][n]["lat"],jEle[jI]["geometry"][n]["lon"]);
+                        }
 
+                    }
+                    //bounds are only for non-nodes
+                    if(!jEle[jI]["bounds"].is_null())
+                    {
+                        p->setBounds(jEle[jI]["bounds"]["minlat"], jEle[jI]["bounds"]["minlon"], jEle[jI]["bounds"]["maxlat"], jEle[jI]["bounds"]["maxlon"]);
+                    }
                 }
-            }
             }catch(nlohmann::detail::parse_error e)
             {
-                cerr<<"Could not parse data:\n"<<e.what();
+                cerr<<"Could not parse data\n";
             }
         }
+
+        //once we have processed data, or determined that it was processed prior, we print the data
         cout<<"Points of interest at timestep: "<<data[index]->time<<endl;
         for(POI* p : data[index]->pois)
         {
@@ -162,10 +194,12 @@ void LogViewer::query()//thread the call of this
         }
             
     }
+    //this atomic boolean lets me safely delete threads that have finished their query
     threadRunning=0;
 }
 
-
+//this creates a vector of past positions based on the current timestep. 
+//This is designed to allow paths to be drawn in p2
 vector <LogData*> LogViewer::getPastPositions()
 {
     double index = (current_time/steptime) - data[0]->time/steptime;
@@ -178,11 +212,13 @@ vector <LogData*> LogViewer::getPastPositions()
     return ret;
 }
 
+//makes creating a thread query externally a little simpler
 thread* LogViewer::createThreadedQuery()
 {
     return new thread(&LogViewer::query, this);
 }
 
+//used for printing each timestep's queried data
 void LogViewer::printAllQueriedInfo()
 {
     for(int i = 0; i<data.size();i++)

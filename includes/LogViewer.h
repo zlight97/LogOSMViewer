@@ -28,6 +28,7 @@ public:
     bool isNetThreadRunning() {return threadRunning;}
     int getID() {return id;}
     vector <LogData*> getPastPositions();
+    thread *createThreadedQuery();
 };
 
 #endif

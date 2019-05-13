@@ -88,7 +88,7 @@ void LogViewer::query()//thread the call of this
             double lonFac = 0.00205188989;
             string bbox = to_string(data[i]->nLat-latFac)+","+to_string(data[i]->nLong-lonFac)+","+to_string(data[i]->nLat+latFac)+","+to_string(data[i]->nLong+lonFac);
             // string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););relation(around:"+E+","+lat+","+lon+");";
-            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
+            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");";//;relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
             cout<<body<<endl;
             
             auto response = cpr::Get(cpr::Url{"https://www.overpass-api.de/api/interpreter"},
@@ -116,4 +116,9 @@ vector <LogData*> LogViewer::getPastPositions()
         ret.push_back(data[(int)i]);
     }
     return ret;
+}
+
+thread* LogViewer::createThreadedQuery()
+{
+    return new thread(&LogViewer::query, this);
 }

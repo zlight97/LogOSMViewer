@@ -88,15 +88,15 @@ int main(int argc, char* argv[])
                 {
                     // if(l->isNetThreadRunning())
                     //     continue;
-                    thread *net = new thread(&LogViewer::query, l);
-                    netThreads.push_back(net);
+                    // thread *net = new thread(&LogViewer::query, l);
+                    netThreads.push_back(l->createThreadedQuery());
                     netThreadIds.push_back(l->getID());
                 }
             }
             else if(i<viewers.size()&&!viewers[i]->isNetThreadRunning())
             {
-                thread *net = new thread(&LogViewer::query, viewers[i]);
-                netThreads.push_back(net);
+                // thread *net = new thread(&LogViewer::query, viewers[i]);
+                netThreads.push_back(viewers[i]->createThreadedQuery());
                 netThreadIds.push_back(i);
             }
             

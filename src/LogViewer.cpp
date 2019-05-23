@@ -8,8 +8,9 @@
 #define jEle json["elements"]
 using namespace std;
 using json = nlohmann::json;
-LogViewer::LogViewer(string file, int ID)
+LogViewer::LogViewer(string file, int ID, LogData* massD)
 {
+    massData = massD;
     threadRunning = 0;
     id = ID;
     fstream f;
@@ -86,6 +87,49 @@ void LogViewer::run()
         {
             cout<<"ID: "<<id<<" TIME: "<<data[i]->time<<"\nnLat: "<<data[i]->nLat<<" nLong: "<<data[i]->nLong<<" nElev: "<<data[i]->nE<<endl;
             cout<<"gpsLat: "<<data[i]->gpsLat<<" gpsLong: "<<data[i]->gpsLong<<" gpsElev: "<<data[i]->gpsE<<endl;
+        
+            double l = data[i]->nLat, lo = data[i]->nLong;
+            int n=0;
+            // for(POI* p : massData->pois)
+            for(int i = 0; i<massData->pois.size(); i++)
+            {
+                if(massData->pois[i]->getPOIType()!=WAY)
+                    continue;
+                Bound b = massData->pois[i]->getBounds();
+                // cout<<b.minLat<<b.maxLat<<b.minLon<<b.maxLon<<endl<<l<<lo<<endl;
+                if(massData->pois[i]->building()&&l>b.minLat&&l<b.maxLat&&lo>b.minLon&&lo<b.maxLon)
+                {
+                    bool flag = 0;
+                    for(inside in : isInside)
+                    {
+                        if(i==in.number)
+                        {
+                            flag = 1;
+                            break;
+                        }
+                    }
+                    if(flag == 1)
+                        continue;
+                    else
+                    {
+                        inside in;
+                        in.number=i;
+                        in.startTime = current_time;
+                        isInside.push_back(in);
+                    }
+                }
+            }
+            for(int i = 0; i<isInside.size();i++)
+            {
+                Bound b = massData->pois[isInside[i].number]->getBounds();
+                if(!(l>b.minLat&&l<b.maxLat&&lo>b.minLon&&lo<b.maxLon))
+                {
+                    cout<<"Node: "<<id<<" has left building after: "<<current_time-isInside[i].startTime<<"seconds.\nBuilding Data:\n";
+                    massData->pois[isInside[i].number]->printQueriedInfo();
+                    isInside.erase(isInside.begin()+i);
+                    i--;
+                }
+            }
         }
         if(endd)
             return;
@@ -107,11 +151,12 @@ void LogViewer::query()
             //this block determines the data that is going to be sent to the overpass API
             string lat = to_string(data[i]->nLat);
             string lon = to_string(data[i]->nLong);
-            string E = "10";//to_string(data[i]->nE);
+            string E = "500";//to_string(data[i]->nE);
             double latFac = 0.00042076252;//these factors were determined by playing around with OSM and viewing how it makes it's calls to overpass
             double lonFac = 0.00205188989;
-            string bbox = to_string(data[i]->nLat-latFac)+","+to_string(data[i]->nLong-lonFac)+","+to_string(data[i]->nLat+latFac)+","+to_string(data[i]->nLong+lonFac);
-            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
+            string bbox = "37.7330,-122.5128,37.8096,-122.3453";//to_string(data[i]->nLat-latFac)+","+to_string(data[i]->nLong-lonFac)+","+to_string(data[i]->nLat+latFac)+","+to_string(data[i]->nLong+lonFac);
+            string body = "[timeout:10][out:json];(node(around:"+E+","+lat+","+lon+");way(around:"+E+","+lat+","+lon+"););out tags geom("+bbox+");";//relation(around:"+E+","+lat+","+lon+");out geom("+bbox+");";
+            //"[timeout:10][out:json];(node(around:500,37.7718,-122.4347);way(around:500,37.7718,-122.4347););out tags geom(37.7330,-122.5128,37.8096,-122.3453);";
                                                                                                                         //commenting after this ;^ and adding "; will remove relations, which in turn removes a lot of garbage data
             //I chose to use overpass as it does all of the searching for me, and gives me nearby results, which are easier to parse
             auto response = cpr::Get(cpr::Url{"https://www.overpass-api.de/api/interpreter"},
@@ -232,4 +277,130 @@ void LogViewer::printAllQueriedInfo()
             }
         }
     }
+}
+
+void LogViewer::writeQueriedInfo(string filename)
+{
+    filename = "../geoJSON/"+filename;
+    ifstream infile(filename);
+    json j;
+    infile>>j;
+    infile.close();
+    // for(int i = 0; i<data.size();i++)
+    // {
+        if(massData!=NULL&&massData->pois.size()>0)
+        {
+            for(POI* p : massData->pois)
+            {
+                if(p==NULL||p->getPOIType()==RELATION)
+                    continue;
+                json feature;
+                feature["type"]="Feature";
+                if(p->getPOIType()==NODE)
+                {
+                    if(p->getTags().size()==0)
+                        continue;
+                    Coord g = p->getCoord();
+                    feature["geometry"]["type"]="Point";
+                    feature["geometry"]["coordinates"]={g.lon, g.lat};
+                }else if(p->getPOIType()==WAY)
+                {
+                    int flag = 0;
+                    for(Tag* t : p->getTags())
+                    {
+                        if(t->name=="building")
+                        {
+                            flag = 1;
+                            if(t->desc!="yes")
+                                continue;
+                        }
+                        if(t->name=="lanes")
+                            flag = 2;
+                        
+                    }if(flag==0)
+                        continue;
+                    else if(flag==1){
+                        feature["geometry"]["type"]="Polygon"; 
+                        feature["geometry"]["coordinates"]={};
+                        for(Coord *c : p->getGeom())
+                        {
+                            if(c!=NULL)
+                                feature["geometry"]["coordinates"][0].push_back({c->lon,c->lat});
+                        }
+                        if(feature["geometry"]["coordinates"][0].size()<4)
+                            continue;
+                        if(feature["geometry"]["coordinates"][0].size()>0)
+                            feature["geometry"]["coordinates"][0].push_back(feature["geometry"]["coordinates"][0][0]);
+                    }
+                    else if(flag == 2)
+                    {
+                        feature["geometry"]["type"]="LineString"; 
+                        feature["geometry"]["coordinates"]={};
+                        for(Coord *c : p->getGeom())
+                        {
+                            if(c!=NULL)
+                                feature["geometry"]["coordinates"].push_back({c->lon,c->lat});
+                        }
+                        if(feature["geometry"]["coordinates"].size()<2)
+                            continue;
+                    }
+
+                }else if(p->getPOIType()==RELATION)
+                {
+
+                }
+                else
+                {
+
+                }
+                feature["properties"] = {};
+                for(Tag* t : p->getTags())
+                {
+                    if(feature["properties"].is_null())
+                        feature["properties"][t->name]=t->desc;
+                    else
+                        feature["properties"].push_back({t->name,t->desc});
+                }
+                // cout<<"???????\n"<<feature.dump(4)<<endl;
+                if(j["features"].is_null())
+                    j["features"] = {feature};
+                else
+                    j["features"].push_back(feature);
+                // cout<<j.dump(4)<<endl;
+            }
+        }
+    // }
+    // cout<<"!!!!!!!!!!!!!!\n"<<j.dump(4)<<endl;
+    ofstream output(filename);
+    output<<j.dump(4)<<endl;
+    output.close();
+    writePastLocations(filename);
+}
+
+void LogViewer::writePastLocations(string filename)
+{
+    // filename = "../geoJSON/"+filename;
+    ifstream infile(filename);
+    json j;
+    infile>>j;
+    infile.close();
+    vector <LogData*> v = getPastPositions();
+    if(v.size()<=1)
+        return;
+    json feature;
+    feature["type"]="Feature";
+    feature["geometry"]["type"]="LineString"; 
+    feature["geometry"]["coordinates"]={};
+    for(int i = 0; i<v.size();i+=50)
+    {
+        if(v[i]!=NULL)
+            feature["geometry"]["coordinates"].push_back({v[i]->nLong,v[i]->nLat, v[i]->nE});
+    }
+    long co = ((color.R & 0xff) << 16) + ((color.G & 0xff) << 8) + (color.B & 0xff);
+    feature["properties"]["stroke"] = "#"+to_string(co);
+    feature["properties"]["LogPATH"]=to_string(id);
+    j["features"].push_back(feature);
+    ofstream output(filename);
+    output<<j.dump(4)<<endl;
+    output.close();
 }

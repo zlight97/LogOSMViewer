@@ -19,17 +19,25 @@ struct Color
     int R, G, B;
 };
 
+struct inside
+{
+    int number;
+    double startTime;
+};
+
 class LogViewer
 {
     double steptime;
     vector<LogData*> data;
+    LogData* massData;
     int id;
+    vector <inside>isInside;
     atomic <bool> threadRunning;
     Color color;
 public:
     void run();
     void query();
-    LogViewer(string file, int ID);
+    LogViewer(string file, int ID, LogData* massD);
     ~LogViewer();
     bool isNetThreadRunning() {return threadRunning;}
     int getID() {return id;}
@@ -37,6 +45,9 @@ public:
     thread *createThreadedQuery();
     void printAllQueriedInfo();
     Color getColor();
+    void writeQueriedInfo(string filename);
+
+    void writePastLocations(string filename);
 };
 
 #endif

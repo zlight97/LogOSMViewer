@@ -43,6 +43,7 @@ class POI
     vector <Coord*> geometry;
     Bound bounds;
     Coord nodeCoord;
+    bool isBuilding;
 public:
     POI(poi_type type);
     ~POI();
@@ -59,6 +60,7 @@ public:
     Coord getCoord() { return nodeCoord;}
     string getTypeStr();
     void printQueriedInfo();
+    bool building() {return isBuilding;}
     
 
 };
